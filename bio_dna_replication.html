@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DNAの半保存的複製 | 高校生物基礎</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;background:#1a1a2e;font-family:'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif;overflow:hidden}
+#slideContainer{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+.slide{display:none;width:100%;height:100%;padding:1.8vh 2.5vw 6vh;flex-direction:column;justify-content:flex-start;background:#fff;position:relative;overflow:hidden}
+.slide.active{display:flex}
+
+/* カラーパレット */
+:root{
+  --blue:#1565c0;
+  --light-blue:#e3f2fd;
+  --green:#2e7d32;
+  --light-green:#e8f5e9;
+  --orange:#e65100;
+  --light-orange:#fff3e0;
+  --purple:#6a1b9a;
+  --light-purple:#f3e5f5;
+  --red:#c62828;
+  --gray:#546e7a;
+  --bg-slide:#f8faff;
+}
+
+.slide{background:var(--bg-slide)}
+
+/* ヘッダー */
+.slide-header{display:flex;align-items:center;gap:1vw;margin-bottom:1.2vh;border-bottom:4px solid var(--blue);padding-bottom:1vh}
+.slide-num{background:var(--blue);color:#fff;border-radius:50%;width:4.5vw;height:4.5vw;display:flex;align-items:center;justify-content:center;font-size:1.8vw;font-weight:bold;flex-shrink:0}
+.slide-title{font-size:2.7vw;font-weight:bold;color:var(--blue);line-height:1.2}
+
+/* コンテンツ */
+.content{flex:1;display:flex;flex-direction:column;gap:1.2vh;overflow:hidden}
+.content-row{display:flex;gap:2vw;flex:1;overflow:hidden}
+.col{flex:1;display:flex;flex-direction:column;gap:1.2vh}
+
+/* カード */
+.card{border-radius:10px;padding:1.2vh 1.8vw;border-left-width:6px}
+.card-blue{background:var(--light-blue);border-left:6px solid var(--blue)}
+.card-green{background:var(--light-green);border-left:6px solid var(--green)}
+.card-orange{background:var(--light-orange);border-left:6px solid var(--orange)}
+.card-purple{background:var(--light-purple);border-left:6px solid var(--purple)}
+.card-red{background:#ffebee;border-left:6px solid var(--red)}
+.card-gray{background:#eceff1;border-left:6px solid var(--gray)}
+
+.card-label{font-size:1.25vw;font-weight:bold;letter-spacing:.05em;margin-bottom:.5vh;text-transform:uppercase}
+.card-blue .card-label{color:var(--blue)}
+.card-green .card-label{color:var(--green)}
+.card-orange .card-label{color:var(--orange)}
+.card-purple .card-label{color:var(--purple)}
+.card-red .card-label{color:var(--red)}
+.card-gray .card-label{color:var(--gray)}
+
+p,li{font-size:1.85vw;line-height:1.65;color:#222}
+ul{padding-left:2vw}
+li{margin-bottom:.4vh}
+strong{color:var(--blue)}
+.red{color:var(--red)}
+.green{color:var(--green)}
+.orange{color:var(--orange)}
+.purple{color:var(--purple)}
+
+/* 大見出し */
+.big-q{font-size:2.3vw;font-weight:bold;color:var(--orange);background:var(--light-orange);border-radius:8px;padding:1.4vh 1.8vw;line-height:1.5}
+
+/* ステップ */
+.step-box{display:flex;align-items:flex-start;gap:1vw}
+.step-num{background:var(--blue);color:#fff;border-radius:50%;width:3.2vw;height:3.2vw;display:flex;align-items:center;justify-content:center;font-size:1.5vw;font-weight:bold;flex-shrink:0;margin-top:.2vh}
+
+/* 表 */
+table{border-collapse:collapse;width:100%}
+th{background:var(--blue);color:#fff;padding:.8vh 1vw;font-size:1.6vw;text-align:center}
+td{border:1px solid #b0bec5;padding:.7vh 1vw;font-size:1.6vw;text-align:center}
+tr:nth-child(even) td{background:#f5f9ff}
+.td-light{background:#e3f2fd}
+.td-mid{background:#fff8e1}
+.td-heavy{background:#fce4ec}
+
+/* 強調ボックス */
+.highlight{background:linear-gradient(135deg,#1565c0,#0d47a1);color:#fff;border-radius:12px;padding:1.8vh 2vw;text-align:center}
+.highlight p{color:#fff;font-size:2vw;font-weight:bold}
+
+/* アニメーション要素 */
+.anim{opacity:0;transition:opacity .4s ease,transform .4s ease;transform:translateY(10px)}
+.anim.show{opacity:1;transform:translateY(0)}
+
+/* ナビ */
+#nav{position:fixed;bottom:1.5vh;right:2vw;display:flex;gap:1vw;z-index:100}
+#nav button{background:var(--blue);color:#fff;border:none;border-radius:8px;padding:.8vh 2.2vw;font-size:1.5vw;cursor:pointer;font-weight:bold}
+#nav button:hover{background:#0d47a1}
+#nav button:disabled{background:#90a4ae;cursor:default}
+#slideInfo{position:fixed;bottom:1.5vh;left:50%;transform:translateX(-50%);color:#fff;font-size:1.4vw;background:rgba(0,0,0,.5);padding:.5vh 2vw;border-radius:20px;font-weight:bold}
+
+/* タイトルスライド */
+.title-slide{background:linear-gradient(135deg,#1565c0 0%,#0d47a1 50%,#1a237e 100%);justify-content:center;align-items:center;text-align:center}
+.title-main{font-size:4.2vw;font-weight:bold;color:#fff;margin-bottom:2vh;line-height:1.3}
+.title-sub{font-size:2.2vw;color:#bbdefb;margin-bottom:1vh}
+.title-info{font-size:1.6vw;color:#90caf9;margin-top:2vh}
+
+/* 目標リスト */
+.goal-item{display:flex;align-items:flex-start;gap:1.2vw;padding:1vh 0;border-bottom:1px solid #e0e0e0}
+.goal-icon{font-size:2.1vw;flex-shrink:0}
+
+/* 計算式 */
+.formula{background:#1a237e;color:#fff;border-radius:8px;padding:1.2vh 2vw;font-size:2.1vw;font-weight:bold;text-align:center;font-family:monospace}
+.formula-step{background:#f8f9fa;border:2px solid #dee2e6;border-radius:6px;padding:.8vh 1.5vw;font-size:1.7vw;font-family:monospace;color:#1a237e}
+
+/* タイマー風 */
+.think-box{background:linear-gradient(135deg,#ff6f00,#f57c00);color:#fff;border-radius:10px;padding:1.2vh 2vw;display:flex;align-items:center;gap:1.2vw}
+.think-box p{color:#fff;font-size:1.75vw}
+.think-icon{font-size:3vw;flex-shrink:0}
+
+/* 答え強調 */
+.answer-box{background:linear-gradient(135deg,#2e7d32,#1b5e20);color:#fff;border-radius:10px;padding:1.4vh 2vw;text-align:center}
+.answer-box p{color:#fff;font-size:2vw;font-weight:bold}
+.answer-box strong{color:#fff}
+
+/* 問題番号 */
+.q-badge{display:inline-block;background:var(--orange);color:#fff;border-radius:6px;padding:.3vh 1vw;font-size:1.4vw;font-weight:bold;margin-right:.5vw}
+
+@media print{
+  body{overflow:auto;background:#fff}
+  #nav,#slideInfo{display:none}
+  .slide{display:flex!important;page-break-after:always;height:100vh}
+  .anim{opacity:1!important;transform:none!important}
+}
+</style>
+</head>
+<body>
+<div id="slideContainer">
+
+<!-- ===== SLIDE 1: タイトル ===== -->
+<div class="slide title-slide active" data-anims="0">
+  <div class="title-main">DNAの半保存的複製<br><span style="font-size:3vw">メセルソン・スタールの実験</span></div>
+  <div class="title-sub">高校生物基礎　遺伝情報とDNA</div>
+  <svg width="70vw" height="16vh" viewBox="0 0 800 80" style="margin:2vh auto">
+    <!-- DNA二重らせん模式 -->
+    <g>
+      <!-- 左鎖(15N) -->
+      <path d="M50,10 C150,10 150,70 250,70 C350,70 350,10 450,10 C550,10 550,70 650,70 C700,70 730,50 750,40" fill="none" stroke="#ef5350" stroke-width="6" stroke-linecap="round"/>
+      <!-- 右鎖(14N) -->
+      <path d="M50,70 C150,70 150,10 250,10 C350,10 350,70 450,70 C550,70 550,10 650,10 C700,10 730,30 750,40" fill="none" stroke="#42a5f5" stroke-width="6" stroke-linecap="round"/>
+      <!-- 横の結合 -->
+      <line x1="150" y1="40" x2="150" y2="40" stroke="#90a4ae" stroke-width="2"/>
+      <line x1="250" y1="40" x2="250" y2="40" stroke="#90a4ae" stroke-width="2"/>
+      <!-- ラベル -->
+      <text x="30" y="45" fill="#ef5350" font-size="14" font-weight="bold">¹⁵N</text>
+      <text x="760" y="45" fill="#42a5f5" font-size="14" font-weight="bold">¹⁴N</text>
+    </g>
+  </svg>
+</div>
+
+<!-- ===== SLIDE 2: 学習目標 ===== -->
+<div class="slide" data-anims="0">
+  <div class="slide-header">
+    <div class="slide-num">2</div>
+    <div class="slide-title">本時の学習目標</div>
+  </div>
+  <div class="content">
+    <div class="card card-blue">
+      <div class="card-label">今日のゴール</div>
+      <p>メセルソン・スタールの実験を通して、<strong>DNA半保存的複製の仕組みと証明方法</strong>を理解する</p>
+    </div>
+    <div class="goal-item"><div class="goal-icon">①</div><p>DNAの複製には「保存的」「半保存的」「分散的」の3説があったことを説明できる</p></div>
+    <div class="goal-item"><div class="goal-icon">②</div><p>分裂回数ごとに生じるDNAの種類（軽・中間・重）を図で示せる</p></div>
+    <div class="goal-item"><div class="goal-icon">③</div><p>分裂 n 回後の各DNAの本数を計算できる</p></div>
+    <div class="goal-item"><div class="goal-icon">④</div><p>本数の比（軽：中間：重）を文字式で表せる</p></div>
+    <div class="highlight" style="margin-top:1vh"><p>「図を描きながら考える」習慣が、この単元の最大のコツ！</p></div>
+  </div>
+</div>
+
+<!-- ===== SLIDE 3: 導入 背景知識 ===== -->
+<div class="slide" data-anims="0">
+  <div class="slide-header">
+    <div class="slide-num">3</div>
+    <div class="slide-title">DNAの複製とは？ ── 3つの仮説</div>
+  </div>
+  <div class="content">
+    <div class="card card-gray" style="flex-shrink:0">
+      <div class="card-label">前提知識</div>
+      <p>DNAは細胞分裂のたびに<strong>正確にコピー</strong>される。では、どうやってコピーされるのか？1953年にDNA二重らせん構造が発見されたのち、3つの仮説が提唱された。</p>
+    </div>
+    <!-- 3説を横並びSVG1枚で比較 -->
+    <svg viewBox="0 0 860 290" width="100%" style="flex:1;min-height:0">
+      <defs>
+        <marker id="a3" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#555"/></marker>
+      </defs>
+      <!-- 共通: 凡例 -->
+      <rect x="340" y="4" width="16" height="14" rx="3" fill="#ef5350"/>
+      <text x="360" y="16" font-size="13" fill="#333">元の鎖（¹⁵N）</text>
+      <rect x="470" y="4" width="16" height="14" rx="3" fill="#42a5f5"/>
+      <text x="490" y="16" font-size="13" fill="#333">新しい鎖（¹⁴N）</text>
+
+      <!-- ===== ① 保存的複製 ===== -->
+      <rect x="0" y="24" width="270" height="266" rx="10" fill="#e3f2fd" stroke="#1565c0" stroke-width="2"/>
+      <text x="135" y="46" font-size="16" font-weight="bold" fill="#1565c0" text-anchor="middle">① 保存的複製</text>
+
+      <!-- Before -->
+      <text x="52" y="68" font-size="12" fill="#888" text-anchor="middle">複製前</text>
+      <rect x="24" y="74" width="24" height="110" rx="5" fill="#ef5350"/>
+      <rect x="52" y="74" width="24" height="110" rx="5" fill="#ef5350"/>
+      <text x="40" y="198" font-size="11" fill="#ef5350" text-anchor="middle" font-weight="bold">¹⁵N-¹⁵N</text>
+
+      <!-- 矢印 -->
+      <line x1="88" y1="129" x2="118" y2="129" stroke="#555" stroke-width="2" marker-end="url(#a3)"/>
+      <text x="103" y="122" font-size="11" fill="#555" text-anchor="middle">複製</text>
+
+      <!-- After: 元の2本鎖そのまま -->
+      <rect x="128" y="74" width="22" height="110" rx="5" fill="#ef5350"/>
+      <rect x="154" y="74" width="22" height="110" rx="5" fill="#ef5350"/>
+      <text x="141" y="198" font-size="11" fill="#ef5350" text-anchor="middle" font-weight="bold">元のまま</text>
+      <!-- After: 全く新しい2本鎖 -->
+      <rect x="192" y="74" width="22" height="110" rx="5" fill="#42a5f5"/>
+      <rect x="218" y="74" width="22" height="110" rx="5" fill="#42a5f5"/>
+      <text x="205" y="198" font-size="11" fill="#42a5f5" text-anchor="middle" font-weight="bold">完全新品</text>
+
+      <text x="135" y="226" font-size="13" fill="#1565c0" text-anchor="middle" font-weight="bold">元の2本鎖はそのまま残る</text>
+      <text x="135" y="246" font-size="12" fill="#555" text-anchor="middle">→ 完全に新しい2本鎖が別に作られる</text>
+      <text x="135" y="268" font-size="11" fill="#888" text-anchor="middle">遠心後：重いバンド＋軽いバンドの2本</text>
+
+      <!-- ===== ② 半保存的複製 ===== -->
+      <rect x="295" y="24" width="270" height="266" rx="10" fill="#fff3e0" stroke="#e65100" stroke-width="2.5"/>
+      <text x="430" y="46" font-size="16" font-weight="bold" fill="#e65100" text-anchor="middle">② 半保存的複製</text>
+
+      <!-- Before -->
+      <text x="347" y="68" font-size="12" fill="#888" text-anchor="middle">複製前</text>
+      <rect x="323" y="74" width="24" height="110" rx="5" fill="#ef5350"/>
+      <rect x="351" y="74" width="24" height="110" rx="5" fill="#ef5350"/>
+      <text x="337" y="198" font-size="11" fill="#ef5350" text-anchor="middle" font-weight="bold">¹⁵N-¹⁵N</text>
+
+      <!-- 矢印 -->
+      <line x1="387" y1="129" x2="415" y2="129" stroke="#555" stroke-width="2" marker-end="url(#a3)"/>
+      <text x="401" y="122" font-size="11" fill="#555" text-anchor="middle">複製</text>
+
+      <!-- After: 元の鎖1本+新しい鎖1本 × 2 -->
+      <rect x="424" y="74" width="22" height="110" rx="5" fill="#ef5350"/>
+      <rect x="450" y="74" width="22" height="110" rx="5" fill="#42a5f5"/>
+      <text x="437" y="198" font-size="11" fill="#888" text-anchor="middle" font-weight="bold">¹⁵N-¹⁴N</text>
+
+      <rect x="490" y="74" width="22" height="110" rx="5" fill="#ef5350"/>
+      <rect x="516" y="74" width="22" height="110" rx="5" fill="#42a5f5"/>
+      <text x="503" y="198" font-size="11" fill="#888" text-anchor="middle" font-weight="bold">¹⁵N-¹⁴N</text>
+
+      <text x="430" y="226" font-size="13" fill="#e65100" text-anchor="middle" font-weight="bold">元の鎖1本を鋳型にして複製</text>
+      <text x="430" y="246" font-size="12" fill="#555" text-anchor="middle">→ 各分子に元の鎖1本＋新しい鎖1本</text>
+      <text x="430" y="268" font-size="11" fill="#888" text-anchor="middle">遠心後：中間バンドのみ1本</text>
+
+      <!-- ===== ③ 分散的複製 ===== -->
+      <rect x="590" y="24" width="270" height="266" rx="10" fill="#f3e5f5" stroke="#6a1b9a" stroke-width="2"/>
+      <text x="725" y="46" font-size="16" font-weight="bold" fill="#6a1b9a" text-anchor="middle">③ 分散的複製</text>
+
+      <!-- Before -->
+      <text x="642" y="68" font-size="12" fill="#888" text-anchor="middle">複製前</text>
+      <rect x="618" y="74" width="24" height="110" rx="5" fill="#ef5350"/>
+      <rect x="646" y="74" width="24" height="110" rx="5" fill="#ef5350"/>
+      <text x="632" y="198" font-size="11" fill="#ef5350" text-anchor="middle" font-weight="bold">¹⁵N-¹⁵N</text>
+
+      <!-- 矢印 -->
+      <line x1="682" y1="129" x2="710" y2="129" stroke="#555" stroke-width="2" marker-end="url(#a3)"/>
+      <text x="696" y="122" font-size="11" fill="#555" text-anchor="middle">複製</text>
+
+      <!-- After: 各鎖が混ざった断片 -->
+      <rect x="718" y="74" width="22" height="26" rx="3" fill="#ef5350"/>
+      <rect x="718" y="104" width="22" height="26" rx="3" fill="#42a5f5"/>
+      <rect x="718" y="134" width="22" height="26" rx="3" fill="#ef5350"/>
+      <rect x="718" y="162" width="22" height="22" rx="3" fill="#42a5f5"/>
+
+      <rect x="744" y="74" width="22" height="26" rx="3" fill="#42a5f5"/>
+      <rect x="744" y="104" width="22" height="26" rx="3" fill="#ef5350"/>
+      <rect x="744" y="134" width="22" height="26" rx="3" fill="#42a5f5"/>
+      <rect x="744" y="162" width="22" height="22" rx="3" fill="#ef5350"/>
+      <text x="731" y="198" font-size="11" fill="#888" text-anchor="middle" font-weight="bold">混在</text>
+
+      <rect x="790" y="74" width="22" height="26" rx="3" fill="#42a5f5"/>
+      <rect x="790" y="104" width="22" height="26" rx="3" fill="#ef5350"/>
+      <rect x="790" y="134" width="22" height="26" rx="3" fill="#42a5f5"/>
+      <rect x="790" y="162" width="22" height="22" rx="3" fill="#ef5350"/>
+
+      <rect x="816" y="74" width="22" height="26" rx="3" fill="#ef5350"/>
+      <rect x="816" y="104" width="22" height="26" rx="3" fill="#42a5f5"/>
+      <rect x="816" y="134" width="22" height="26" rx="3" fill="#ef5350"/>
+      <rect x="816" y="162" width="22" height="22" rx="3" fill="#42a5f5"/>
+      <text x="803" y="198" font-size="11" fill="#888" text-anchor="middle" font-weight="bold">混在</text>
+
+      <text x="725" y="226" font-size="13" fill="#6a1b9a" text-anchor="middle" font-weight="bold">元と新しい断片が細かく混在</text>
+      <text x="725" y="246" font-size="12" fill="#555" text-anchor="middle">→ 各分子に断片が混ざって入る</text>
+      <text x="725" y="268" font-size="11" fill="#888" text-anchor="middle">遠心後：中間バンドのみ1本（②と区別困難）</text>
+    </svg>
+    <div class="card card-red" style="flex-shrink:0">
+      <p><span class="red">■ 問い：</span>どの仮説が正しいか、どうやって実験で証明すればよいだろう？</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SLIDE 4: 実験セットアップ ===== -->
+<div class="slide" data-anims="0">
+  <div class="slide-header">
+    <div class="slide-num">4</div>
+    <div class="slide-title">メセルソン・スタールの実験（1958年）</div>
+  </div>
+  <div class="content">
+    <div class="content-row" style="flex:1">
+      <div class="col" style="flex:1.3">
+        <div class="card card-blue">
+          <div class="card-label">アイデア：重さでDNAを区別する</div>
+          <p>窒素原子には<strong>¹⁴N（軽い）</strong>と<strong>¹⁵N（重い）</strong>の同位体がある。<br>これを使ってDNAに「重さの印」をつける。</p>
+        </div>
+        <div class="card card-green">
+          <div class="card-label">実験手順</div>
+          <ul>
+            <li><strong>STEP 1</strong>：大腸菌を長期間 <span class="red">¹⁵N培地</span>で培養<br>→ DNAが全て重い（¹⁵N-¹⁵N）</li>
+            <li style="margin-top:.5vh"><strong>STEP 2</strong>：<span class="green">¹⁴N培地</span>に移して分裂させる</li>
+            <li style="margin-top:.5vh"><strong>STEP 3</strong>：分裂回数ごとにDNAを取り出し、<br><strong>密度勾配遠心法</strong>でバンドの位置を観察</li>
+          </ul>
+        </div>
+      </div>
+      <div style="flex:1;display:flex;align-items:center;justify-content:center">
+        <svg viewBox="0 0 260 320" width="90%" height="52vh">
+          <!-- 試験管 -->
+          <rect x="90" y="20" width="80" height="260" rx="8" fill="#e8f4fd" stroke="#1565c0" stroke-width="2"/>
+          <rect x="90" y="20" width="80" height="10" rx="4" fill="#1565c0"/>
+          <!-- 密度勾配 -->
+          <defs>
+            <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#e8f4fd"/>
+              <stop offset="100%" stop-color="#1565c0" stop-opacity=".3"/>
+            </linearGradient>
+          </defs>
+          <rect x="91" y="30" width="78" height="245" rx="6" fill="url(#grad)"/>
+          <!-- バンド位置 -->
+          <!-- 0回分裂: 重いバンド -->
+          <rect x="95" y="220" width="70" height="10" rx="3" fill="#c62828"/>
+          <text x="175" y="229" fill="#c62828" font-size="11" font-weight="bold">重い(¹⁵N-¹⁵N)</text>
+          <!-- 1回: 中間バンド -->
+          <rect x="95" y="170" width="70" height="10" rx="3" fill="#f57c00"/>
+          <text x="175" y="179" fill="#f57c00" font-size="11" font-weight="bold">中間(¹⁵N-¹⁴N)</text>
+          <!-- 2回: 軽いバンド -->
+          <rect x="95" y="100" width="70" height="10" rx="3" fill="#1565c0"/>
+          <text x="175" y="109" fill="#1565c0" font-size="11" font-weight="bold">軽い(¹⁴N-¹⁴N)</text>
+          <!-- ラベル -->
+          <text x="130" y="15" fill="#333" font-size="12" text-anchor="middle" font-weight="bold">遠心後のバンド</text>
+          <text x="82" y="50" fill="#888" font-size="10" text-anchor="end">軽</text>
+          <text x="82" y="265" fill="#888" font-size="10" text-anchor="end">重</text>
+          <line x1="88" y1="30" x2="88" y2="270" stroke="#aaa" stroke-width="1" stroke-dasharray="3"/>
+          <polygon points="88,280 84,268 92,268" fill="#aaa"/>
+        </svg>
+      </div>
+    </div>
+    <div class="think-box">
+      <div class="think-icon">⏱</div>
+      <p><strong>30秒考えよう：</strong>分裂0回・1回・2回のとき、それぞれバンドはどの位置に出ると予想する？ノートに書いてみよう。</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SLIDE 5: 問1 知識問題 ===== -->
+<div class="slide" data-anims="3">
+  <div class="slide-header">
+    <div class="slide-num">5</div>
+    <div class="slide-title"><span class="q-badge">問1</span> 空欄補充</div>
+  </div>
+  <div class="content">
+    <div class="big-q anim" id="s5-a0">
+      DNAの複製様式については、保存的複製、分散的複製、（　　）の説があった。<br>
+      これを実験で証明したのは（　　）と（　　）である。
+    </div>
+    <div class="think-box anim" id="s5-a1">
+      <div class="think-icon">🔑</div>
+      <p><strong>思考の鍵：</strong>スライド3で学んだ3つの仮説の名前を思い出そう。実験者名は「メ〇〇〇〇・ス〇〇〇」。</p>
+    </div>
+    <div class="card card-green anim" id="s5-a2">
+      <div class="card-label">解答</div>
+      <p>（　　）＝ <strong class="green">半保存的複製</strong></p>
+      <p>（　　）＝ <strong class="green">メセルソン</strong>　　（　　）＝ <strong class="green">スタール</strong></p>
+    </div>
+    <div class="card card-blue anim" id="s5-a3">
+      <div class="card-label">補足</div>
+      <p>三説の中でワトソン＆クリックが提唱したのが<strong>半保存的複製</strong>。メセルソンとスタールは大腸菌を使い、1958年に実験で証明した。</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SLIDE 6: 問2 バンドの判定（問題提示） ===== -->
+<div class="slide" data-anims="4">
+  <div class="slide-header">
+    <div class="slide-num">6</div>
+    <div class="slide-title"><span class="q-badge">問2</span> 分裂回数とバンド位置</div>
+  </div>
+  <div class="content">
+    <div class="content-row" style="flex:1">
+      <!-- 左: 問題 → ヒント → 表 -->
+      <div class="col" style="flex:1.4;overflow:hidden">
+        <div class="big-q anim" id="s6-a0" style="font-size:1.9vw;padding:1vh 1.2vw">
+          ¹⁵N培地で育てた大腸菌を ¹⁴N培地に移した。<br>
+          <strong>分裂0回・1回・2回以降</strong>では、<br>右の①②③④のどのバンドが出るか？
+        </div>
+        <div class="think-box anim" id="s6-a1" style="padding:.8vh 1.2vw">
+          <div class="think-icon" style="font-size:2vw">🔑</div>
+          <p style="font-size:1.5vw"><strong>思考の鍵：</strong>
+          ¹⁵N培地 → 最初は<strong>全て重い</strong>／
+          ¹⁴N培地で分裂 → 新しい鎖は<strong>軽い</strong>／
+          半保存的 → 元の鎖1本が引き継がれる</p>
+        </div>
+        <div class="card card-gray anim" id="s6-a2" style="padding:.8vh 1vw;flex-shrink:0">
+          <div class="card-label" style="font-size:1.1vw">バンドの対応表</div>
+          <table>
+            <tr><th style="font-size:1.4vw">バンド</th><th style="font-size:1.4vw">DNA構成</th><th style="font-size:1.4vw">重さ</th></tr>
+            <tr><td style="font-size:1.4vw"><strong>①</strong></td><td class="td-light" style="font-size:1.4vw">¹⁴N-¹⁴N のみ</td><td style="font-size:1.4vw">軽い</td></tr>
+            <tr><td style="font-size:1.4vw"><strong>②</strong></td><td class="td-mid" style="font-size:1.4vw">¹⁵N-¹⁴N のみ</td><td style="font-size:1.4vw">中間</td></tr>
+            <tr><td style="font-size:1.4vw"><strong>③</strong></td><td style="font-size:1.4vw">①と②の両方</td><td style="font-size:1.4vw">軽＋中間</td></tr>
+            <tr><td style="font-size:1.4vw"><strong>④</strong></td><td class="td-heavy" style="font-size:1.4vw">¹⁵N-¹⁵N のみ</td><td style="font-size:1.4vw">重い</td></tr>
+          </table>
+        </div>
+      </div>
+      <!-- 右: バンド図（常時表示） + 解答（アニメ） -->
+      <div class="col" style="flex:1">
+        <!-- ①〜④ バンド図 -->
+        <svg viewBox="0 0 340 260" width="100%" height="38vh" style="flex-shrink:0">
+          <!-- 試験管共通定義 -->
+          <defs>
+            <linearGradient id="tg" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#e8f4fd"/>
+              <stop offset="100%" stop-color="#c5e1f5"/>
+            </linearGradient>
+          </defs>
+          <!-- タイトル -->
+          <text x="170" y="16" font-size="13" font-weight="bold" fill="#1565c0" text-anchor="middle">密度勾配遠心後のバンドパターン</text>
+          <!-- 軽←→重 軸 -->
+          <text x="10" y="48" font-size="10" fill="#888">軽</text>
+          <text x="10" y="228" font-size="10" fill="#888">重</text>
+          <line x1="20" y1="38" x2="20" y2="232" stroke="#ccc" stroke-width="1.5" stroke-dasharray="3"/>
+          <polygon points="20,234 17,226 23,226" fill="#ccc"/>
+
+          <!-- ① 試験管: 軽いバンドのみ -->
+          <rect x="38" y="30" width="46" height="200" rx="6" fill="url(#tg)" stroke="#90caf9" stroke-width="1.5"/>
+          <rect x="42" y="50" width="38" height="9" rx="3" fill="#42a5f5"/>
+          <text x="61" y="26" font-size="14" font-weight="bold" fill="#1565c0" text-anchor="middle">①</text>
+          <text x="61" y="248" font-size="10" fill="#42a5f5" text-anchor="middle" font-weight="bold">軽いのみ</text>
+
+          <!-- ② 試験管: 中間バンドのみ -->
+          <rect x="103" y="30" width="46" height="200" rx="6" fill="url(#tg)" stroke="#90caf9" stroke-width="1.5"/>
+          <rect x="107" y="130" width="38" height="9" rx="3" fill="#f57c00"/>
+          <text x="126" y="26" font-size="14" font-weight="bold" fill="#1565c0" text-anchor="middle">②</text>
+          <text x="126" y="248" font-size="10" fill="#f57c00" text-anchor="middle" font-weight="bold">中間のみ</text>
+
+          <!-- ③ 試験管: 軽い＋中間 -->
+          <rect x="168" y="30" width="46" height="200" rx="6" fill="url(#tg)" stroke="#90caf9" stroke-width="1.5"/>
+          <rect x="172" y="50" width="38" height="9" rx="3" fill="#42a5f5"/>
+          <rect x="172" y="130" width="38" height="9" rx="3" fill="#f57c00"/>
+          <text x="191" y="26" font-size="14" font-weight="bold" fill="#1565c0" text-anchor="middle">③</text>
+          <text x="191" y="248" font-size="10" fill="#555" text-anchor="middle" font-weight="bold">軽＋中間</text>
+
+          <!-- ④ 試験管: 重いバンドのみ -->
+          <rect x="233" y="30" width="46" height="200" rx="6" fill="url(#tg)" stroke="#90caf9" stroke-width="1.5"/>
+          <rect x="237" y="210" width="38" height="9" rx="3" fill="#ef5350"/>
+          <text x="256" y="26" font-size="14" font-weight="bold" fill="#1565c0" text-anchor="middle">④</text>
+          <text x="256" y="248" font-size="10" fill="#ef5350" text-anchor="middle" font-weight="bold">重いのみ</text>
+
+          <!-- 凡例 -->
+          <rect x="295" y="60" width="12" height="8" rx="2" fill="#42a5f5"/>
+          <text x="311" y="68" font-size="10" fill="#333">軽い(¹⁴N-¹⁴N)</text>
+          <rect x="295" y="80" width="12" height="8" rx="2" fill="#f57c00"/>
+          <text x="311" y="88" font-size="10" fill="#333">中間(¹⁵N-¹⁴N)</text>
+          <rect x="295" y="100" width="12" height="8" rx="2" fill="#ef5350"/>
+          <text x="311" y="108" font-size="10" fill="#333">重い(¹⁵N-¹⁵N)</text>
+        </svg>
+        <!-- 解答（アニメ） -->
+        <div class="anim" id="s6-a3">
+          <div class="answer-box" style="margin-bottom:.5vh">
+            <p>0回 → <strong>④</strong>（重いのみ）</p>
+          </div>
+          <div class="answer-box" style="background:linear-gradient(135deg,#e65100,#bf360c);margin-bottom:.5vh">
+            <p>1回 → <strong>②</strong>（中間のみ）← 証拠！</p>
+          </div>
+          <div class="answer-box" style="margin-bottom:.5vh">
+            <p>2回以降 → <strong>③</strong>（軽＋中間）</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SLIDE 7: 図解 半保存的複製のしくみ ===== -->
+<div class="slide" data-anims="0">
+  <div class="slide-header">
+    <div class="slide-num">7</div>
+    <div class="slide-title">図で確認！── 半保存的複製の過程</div>
+  </div>
+  <div class="content">
+    <div class="content-row" style="flex:1;align-items:center">
+      <svg viewBox="0 0 760 370" width="68%" height="54vh" style="flex-shrink:0">
+        <defs>
+          <marker id="arr" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L9,3 z" fill="#555"/>
+          </marker>
+        </defs>
+
+        <!-- ===== 凡例 ===== -->
+        <rect x="10" y="8" width="16" height="14" rx="3" fill="#ef5350"/>
+        <text x="30" y="20" font-size="13" fill="#333">¹⁵N鎖（元）</text>
+        <rect x="140" y="8" width="16" height="14" rx="3" fill="#42a5f5"/>
+        <text x="160" y="20" font-size="13" fill="#333">¹⁴N鎖（新）</text>
+
+        <!-- ===== 0回（開始） ===== -->
+        <text x="70" y="48" font-size="14" font-weight="bold" fill="#333" text-anchor="middle">0回（開始）</text>
+        <!-- DNA: ¹⁵N-¹⁵N -->
+        <rect x="44" y="55" width="24" height="120" rx="5" fill="#ef5350"/>
+        <rect x="72" y="55" width="24" height="120" rx="5" fill="#ef5350"/>
+        <!-- 水素結合の横線 -->
+        <line x1="68" y1="80"  x2="72" y2="80"  stroke="#888" stroke-width="2"/>
+        <line x1="68" y1="100" x2="72" y2="100" stroke="#888" stroke-width="2"/>
+        <line x1="68" y1="120" x2="72" y2="120" stroke="#888" stroke-width="2"/>
+        <line x1="68" y1="140" x2="72" y2="140" stroke="#888" stroke-width="2"/>
+        <!-- ラベル（下） -->
+        <text x="70" y="192" font-size="12" fill="#ef5350" font-weight="bold" text-anchor="middle">¹⁵N-¹⁵N</text>
+        <text x="70" y="208" font-size="11" fill="#888" text-anchor="middle">（重い）</text>
+
+        <!-- ===== 矢印①: 1回分裂 ===== -->
+        <line x1="115" y1="115" x2="165" y2="115" stroke="#333" stroke-width="2.5" marker-end="url(#arr)"/>
+        <text x="140" y="105" font-size="13" fill="#333" text-anchor="middle" font-weight="bold">1回分裂</text>
+        <text x="140" y="132" font-size="11" fill="#888" text-anchor="middle">¹⁴N培地</text>
+
+        <!-- ===== 1回分裂後: 2分子 ===== -->
+        <text x="240" y="48" font-size="14" font-weight="bold" fill="#333" text-anchor="middle">1回後（×2）</text>
+        <!-- 分子A: ¹⁵N + ¹⁴N -->
+        <rect x="188" y="55" width="24" height="120" rx="5" fill="#ef5350"/>
+        <rect x="216" y="55" width="24" height="120" rx="5" fill="#42a5f5"/>
+        <text x="202" y="192" font-size="12" fill="#f57c00" font-weight="bold" text-anchor="middle">¹⁵N-¹⁴N</text>
+        <text x="202" y="207" font-size="11" fill="#888" text-anchor="middle">（中間）</text>
+        <!-- 分子B: ¹⁵N + ¹⁴N -->
+        <rect x="258" y="55" width="24" height="120" rx="5" fill="#ef5350"/>
+        <rect x="286" y="55" width="24" height="120" rx="5" fill="#42a5f5"/>
+        <text x="272" y="192" font-size="12" fill="#f57c00" font-weight="bold" text-anchor="middle">¹⁵N-¹⁴N</text>
+        <text x="272" y="207" font-size="11" fill="#888" text-anchor="middle">（中間）</text>
+
+        <!-- ===== 矢印②: 2回分裂 ===== -->
+        <line x1="330" y1="115" x2="380" y2="115" stroke="#333" stroke-width="2.5" marker-end="url(#arr)"/>
+        <text x="355" y="105" font-size="13" fill="#333" text-anchor="middle" font-weight="bold">2回分裂</text>
+        <text x="355" y="132" font-size="11" fill="#888" text-anchor="middle">¹⁴N培地</text>
+
+        <!-- ===== 2回分裂後: 4分子 ===== -->
+        <text x="570" y="48" font-size="14" font-weight="bold" fill="#333" text-anchor="middle">2回後（×4）</text>
+
+        <!-- 分子A: ¹⁵N + ¹⁴N （中間） -->
+        <rect x="390" y="55" width="20" height="100" rx="4" fill="#ef5350"/>
+        <rect x="414" y="55" width="20" height="100" rx="4" fill="#42a5f5"/>
+        <text x="402" y="168" font-size="11" fill="#f57c00" font-weight="bold" text-anchor="middle">中間</text>
+
+        <!-- 分子B: ¹⁴N + ¹⁴N （軽） -->
+        <rect x="450" y="55" width="20" height="100" rx="4" fill="#42a5f5"/>
+        <rect x="474" y="55" width="20" height="100" rx="4" fill="#42a5f5"/>
+        <text x="462" y="168" font-size="11" fill="#1565c0" font-weight="bold" text-anchor="middle">軽い</text>
+
+        <!-- 分子C: ¹⁵N + ¹⁴N （中間） -->
+        <rect x="510" y="55" width="20" height="100" rx="4" fill="#ef5350"/>
+        <rect x="534" y="55" width="20" height="100" rx="4" fill="#42a5f5"/>
+        <text x="522" y="168" font-size="11" fill="#f57c00" font-weight="bold" text-anchor="middle">中間</text>
+
+        <!-- 分子D: ¹⁴N + ¹⁴N （軽） -->
+        <rect x="570" y="55" width="20" height="100" rx="4" fill="#42a5f5"/>
+        <rect x="594" y="55" width="20" height="100" rx="4" fill="#42a5f5"/>
+        <text x="582" y="168" font-size="11" fill="#1565c0" font-weight="bold" text-anchor="middle">軽い</text>
+
+        <!-- 小計ラベル -->
+        <rect x="390" y="185" width="204" height="28" rx="5" fill="#fff8e1" stroke="#f9a825" stroke-width="1"/>
+        <text x="492" y="203" font-size="13" fill="#333" text-anchor="middle" font-weight="bold">中間×2本　軽い×2本　重い×0本</text>
+
+        <!-- ===== 遠心後のバンドイメージ ===== -->
+        <text x="690" y="48" font-size="13" font-weight="bold" fill="#1565c0" text-anchor="middle">遠心後</text>
+        <!-- 試験管 -->
+        <rect x="665" y="55" width="50" height="220" rx="8" fill="#e8f4fd" stroke="#90caf9" stroke-width="1.5"/>
+        <text x="665" y="52" font-size="10" fill="#888">軽</text>
+        <text x="665" y="282" font-size="10" fill="#888">重</text>
+        <!-- 軽いバンド -->
+        <rect x="669" y="90" width="42" height="10" rx="3" fill="#42a5f5"/>
+        <text x="720" y="99" font-size="11" fill="#42a5f5" font-weight="bold">軽い</text>
+        <!-- 中間バンド -->
+        <rect x="669" y="155" width="42" height="10" rx="3" fill="#f57c00"/>
+        <text x="720" y="164" font-size="11" fill="#f57c00" font-weight="bold">中間</text>
+
+        <!-- バンド数注記 -->
+        <text x="690" y="300" font-size="11" fill="#333" text-anchor="middle">軽い＋中間</text>
+        <text x="690" y="315" font-size="11" fill="#333" text-anchor="middle">の2本線</text>
+
+        <!-- 境界線 -->
+        <line x1="645" y1="30" x2="645" y2="370" stroke="#ddd" stroke-width="1" stroke-dasharray="4"/>
+      </svg>
+      <div class="col" style="flex:1">
+        <div class="card card-orange">
+          <div class="card-label">重要ポイント</div>
+          <ul>
+            <li><span class="red">¹⁵N鎖</span>は最初の2本だけ。それ以降は増えない</li>
+            <li style="margin-top:.5vh"><span class="green">¹⁴N鎖</span>は分裂のたびに増え続ける</li>
+            <li style="margin-top:.5vh">中間DNA（¹⁵N-¹⁴N）は常に<strong>2本</strong></li>
+            <li style="margin-top:.5vh">軽いDNA（¹⁴N-¹⁴N）は分裂のたびに<strong>増加</strong></li>
+          </ul>
+        </div>
+        <div class="think-box">
+          <div class="think-icon">✏️</div>
+          <p>図を自分のノートにも描いてみよう。3回分裂後はどうなる？</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SLIDE 8: 問3 本数計算（問題提示） ===== -->
+<div class="slide" data-anims="3">
+  <div class="slide-header">
+    <div class="slide-num">8</div>
+    <div class="slide-title"><span class="q-badge">問3</span> DNA本数の計算</div>
+  </div>
+  <div class="content">
+    <div class="big-q anim" id="s8-a0">
+      分裂 n 回後の<strong>軽いDNA・中間DNA・重いDNA</strong>の本数はそれぞれいくつか？
+    </div>
+    <div class="think-box anim" id="s8-a1">
+      <div class="think-icon">🔑</div>
+      <p><strong>思考の鍵：</strong>まず具体的な数を表に整理しよう。0回・1回・2回・3回…と数えて、規則性を見つけよう。</p>
+    </div>
+    <div class="anim" id="s8-a2">
+      <table>
+        <tr><th>分裂回数</th><th style="color:#42a5f5">軽いDNA本数<br>（¹⁴N-¹⁴N）</th><th style="color:#f57c00">中間DNA本数<br>（¹⁵N-¹⁴N）</th><th style="color:#ef5350">重いDNA本数<br>（¹⁵N-¹⁵N）</th><th>合計本数</th></tr>
+        <tr><td>0回</td><td class="td-light">0</td><td class="td-mid">0</td><td class="td-heavy">1</td><td>1</td></tr>
+        <tr><td>1回</td><td class="td-light">0</td><td class="td-mid">2</td><td class="td-heavy">0</td><td>2</td></tr>
+        <tr><td>2回</td><td class="td-light">2</td><td class="td-mid">2</td><td class="td-heavy">0</td><td>4</td></tr>
+        <tr><td>3回</td><td class="td-light">6</td><td class="td-mid">2</td><td class="td-heavy">0</td><td>8</td></tr>
+        <tr><td>n回</td><td class="td-light"><strong>2ⁿ－2</strong></td><td class="td-mid"><strong>2</strong></td><td class="td-heavy"><strong>0</strong>（n≧1）</td><td><strong>2ⁿ</strong></td></tr>
+      </table>
+    </div>
+    <div class="card card-red anim" id="s8-a3">
+      <p><span class="red">★ なぜ中間DNAは常に2本？</span>　¹⁵N鎖は最初の2本だけ。どれだけ分裂しても¹⁵N鎖を含む分子は2本のみ。</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SLIDE 9: 問3 計算過程の詳細 ===== -->
+<div class="slide" data-anims="0">
+  <div class="slide-header">
+    <div class="slide-num">9</div>
+    <div class="slide-title">計算の根拠 ── なぜその式になるのか</div>
+  </div>
+  <div class="content">
+    <div class="content-row" style="flex:1">
+      <div class="col" style="flex:1">
+        <div class="card card-blue">
+          <div class="card-label">合計本数</div>
+          <p>分裂が1回増えるたびに本数は2倍になる</p>
+          <div class="formula">n回後の合計 ＝ 2ⁿ本</div>
+        </div>
+        <div class="card card-orange" style="margin-top:1vh">
+          <div class="card-label">中間DNA</div>
+          <p>¹⁵N鎖は最初から2本しかない<br>→ n回後も<strong>常に2本</strong>（n≧1）</p>
+          <div class="formula" style="font-size:1.5vw">中間DNA ＝ 2本（一定）</div>
+        </div>
+      </div>
+      <div class="col" style="flex:1">
+        <div class="card card-green">
+          <div class="card-label">軽いDNA ─ 等差数列で考える</div>
+          <ul>
+            <li>1回後：0本</li>
+            <li>2回後：2本（＋2）</li>
+            <li>3回後：6本（＋4）</li>
+            <li>4回後：14本（＋8）</li>
+          </ul>
+          <p style="margin-top:.5vh">「軽いDNA ＝ 合計 − 中間」</p>
+          <div class="formula-step">軽い ＝ 2ⁿ − 2</div>
+        </div>
+        <div class="card card-gray" style="margin-top:1vh">
+          <div class="card-label">検算（n=3のとき）</div>
+          <div class="formula-step">2³ − 2 ＝ 8 − 2 ＝ 6本 ✓</div>
+          <div class="formula-step" style="margin-top:.5vh">中間 2本　　重い 0本 ✓</div>
+        </div>
+      </div>
+    </div>
+    <div class="highlight">
+      <p>軽い：中間：重い　＝　（2ⁿ－2）：2：0　（n≧1）</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SLIDE 10: 問4 比の計算 ===== -->
+<div class="slide" data-anims="4">
+  <div class="slide-header">
+    <div class="slide-num">10</div>
+    <div class="slide-title"><span class="q-badge">問4</span> 本数の比を文字式で表す</div>
+  </div>
+  <div class="content">
+    <div class="big-q anim" id="s10-a0">
+      n回分裂後の<strong>軽いDNA : 中間DNA : 重いDNA</strong> の比を<br>最も簡単な形で表せ（n≧1）。
+    </div>
+    <div class="think-box anim" id="s10-a1">
+      <div class="think-icon">🔑</div>
+      <p><strong>思考の鍵：</strong>問3で求めた本数（2ⁿ−2）：2：0 を、2で割って単純化しよう。<br>「2ⁿ−2」を2で割るには指数法則を使う：2ⁿ÷2 ＝ 2ⁿ⁻¹</p>
+    </div>
+    <div class="col anim" id="s10-a2">
+      <div class="card card-blue">
+        <div class="card-label">計算過程</div>
+        <div class="formula-step">（2ⁿ－2）：2：0</div>
+        <p style="margin:.5vh 0">← 全体を 2 で割る</p>
+        <div class="formula-step">＝（2ⁿ÷2 − 2÷2）：（2÷2）：0</div>
+        <div class="formula-step" style="margin-top:.4vh">＝（2ⁿ⁻¹ − 1）：1：0</div>
+      </div>
+    </div>
+    <div class="answer-box anim" id="s10-a3" style="background:linear-gradient(135deg,#1b5e20,#2e7d32)">
+      <p>軽いDNA : 中間DNA : 重いDNA<br>＝ <strong>（2ⁿ⁻¹ − 1）：1：0</strong></p>
+    </div>
+    <div class="card card-orange anim" id="s10-a4">
+      <p><strong>確認（n=2）：</strong>（2² ⁻ ¹ − 1）：1：0 ＝（2−1）：1：0 ＝ <strong>1：1：0</strong>　← 表の2回目と一致 ✓</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SLIDE 11: まとめ ===== -->
+<div class="slide" data-anims="0">
+  <div class="slide-header">
+    <div class="slide-num">11</div>
+    <div class="slide-title">本時のまとめ</div>
+  </div>
+  <div class="content">
+    <div class="content-row" style="flex:1">
+      <div class="col" style="flex:1">
+        <div class="card card-blue">
+          <div class="card-label">① 半保存的複製とは</div>
+          <p>DNAの2本鎖がほどけ、各鎖を<strong>鋳型</strong>として新しい鎖が合成される。<br>複製後、各分子は<strong>元の鎖1本＋新しい鎖1本</strong>から成る。</p>
+        </div>
+        <div class="card card-green">
+          <div class="card-label">② メセルソン・スタール実験の核心</div>
+          <ul>
+            <li>¹⁵N（重）→ ¹⁴N培地に移す</li>
+            <li>1回後：<strong>全て中間バンド</strong></li>
+            <li>2回後：<strong>中間＋軽いバンド</strong></li>
+          </ul>
+          <p style="margin-top:.5vh">→ これが半保存的複製の<strong>決定的証拠</strong></p>
+        </div>
+      </div>
+      <div class="col" style="flex:1">
+        <div class="card card-orange">
+          <div class="card-label">③ 本数の公式（n≧1）</div>
+          <table>
+            <tr><th>種類</th><th>本数</th></tr>
+            <tr><td>軽いDNA</td><td class="td-light"><strong>2ⁿ－2</strong></td></tr>
+            <tr><td>中間DNA</td><td class="td-mid"><strong>2</strong>（一定）</td></tr>
+            <tr><td>重いDNA</td><td class="td-heavy"><strong>0</strong></td></tr>
+            <tr><td>合計</td><td><strong>2ⁿ</strong></td></tr>
+          </table>
+        </div>
+        <div class="card card-purple">
+          <div class="card-label">④ 比の公式（n≧1）</div>
+          <div class="formula" style="font-size:1.4vw">軽 : 中間 : 重<br>＝（2ⁿ⁻¹−1）：1：0</div>
+        </div>
+      </div>
+    </div>
+    <div class="highlight">
+      <p>「¹⁵N鎖は最初の2本だけ」── この一点が全ての計算の根拠！</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SLIDE 12: 理解確認問題 ===== -->
+<div class="slide" data-anims="3">
+  <div class="slide-header">
+    <div class="slide-num">12</div>
+    <div class="slide-title">理解確認問題</div>
+  </div>
+  <div class="content">
+    <div class="big-q anim" id="s12-a0">
+      ¹⁵N培地で十分に培養した大腸菌を ¹⁴N培地に移し、<strong>3回分裂</strong>させた。<br>
+      このとき、次の問いに答えよ。
+    </div>
+    <div class="card card-gray anim" id="s12-a1">
+      <div class="card-label">問（1）</div>
+      <p>DNA分子の合計本数は何本か。</p>
+      <div class="card-label" style="margin-top:.8vh">問（2）</div>
+      <p>軽いDNA・中間DNA・重いDNAはそれぞれ何本か。</p>
+      <div class="card-label" style="margin-top:.8vh">問（3）</div>
+      <p>軽いDNA：中間DNA：重いDNAの比を最も簡単な整数の比で答えよ。</p>
+    </div>
+    <div class="think-box anim" id="s12-a2">
+      <div class="think-icon">✏️</div>
+      <p>答えを見る前に自分で解いてみよう！ 公式に n=3 を代入して計算しよう。</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SLIDE 13: 理解確認問題 解説 ===== -->
+<div class="slide" data-anims="4">
+  <div class="slide-header">
+    <div class="slide-num">13</div>
+    <div class="slide-title">理解確認問題　解説</div>
+  </div>
+  <div class="content">
+    <div class="content-row" style="flex:1">
+      <div class="col" style="flex:1">
+        <div class="card card-blue anim" id="s13-a0">
+          <div class="card-label">問（1）合計本数</div>
+          <div class="formula-step">合計 ＝ 2ⁿ ＝ 2³ ＝ <strong>8本</strong></div>
+        </div>
+        <div class="card card-green anim" id="s13-a1" style="margin-top:1vh">
+          <div class="card-label">問（2）各種類の本数</div>
+          <div class="formula-step">軽いDNA ＝ 2ⁿ−2 ＝ 2³−2 ＝ 8−2 ＝ <strong>6本</strong></div>
+          <div class="formula-step" style="margin-top:.4vh">中間DNA ＝ <strong>2本</strong>（常に一定）</div>
+          <div class="formula-step" style="margin-top:.4vh">重いDNA ＝ <strong>0本</strong>（n≧1）</div>
+        </div>
+      </div>
+      <div class="col" style="flex:1">
+        <div class="card card-orange anim" id="s13-a2">
+          <div class="card-label">問（3）比</div>
+          <div class="formula-step">（2ⁿ⁻¹−1）：1：0</div>
+          <div class="formula-step" style="margin-top:.4vh">＝（2³⁻¹−1）：1：0</div>
+          <div class="formula-step" style="margin-top:.4vh">＝（2²−1）：1：0</div>
+          <div class="formula-step" style="margin-top:.4vh">＝（4−1）：1：0</div>
+          <div class="formula-step" style="margin-top:.4vh">＝ <strong>3：1：0</strong></div>
+        </div>
+        <div class="answer-box anim" id="s13-a3" style="margin-top:1vh">
+          <p>軽い：中間：重い ＝ <strong>3：1：0</strong></p>
+        </div>
+      </div>
+    </div>
+    <div class="card card-red anim" id="s13-a4">
+      <p><span class="red">■ 確認：</span>6本＋2本＋0本＝8本 ＝ 2³ ✓　　比は 6：2：0 ＝ 3：1：0 ✓</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SLIDE 14: 授業のまとめ ===== -->
+<div class="slide" data-anims="0">
+  <div class="slide-header">
+    <div class="slide-num">14</div>
+    <div class="slide-title">本時のまとめ ── 今日学んだこと</div>
+  </div>
+  <div class="content">
+    <div class="content-row" style="flex:1">
+      <div class="col" style="flex:1.2">
+        <div class="goal-item">
+          <div class="goal-icon" style="color:var(--green)">✔</div>
+          <p><strong>DNAの複製3説</strong>を説明できる<br><span style="font-size:1.2vw;color:var(--gray)">保存的・半保存的・分散的</span></p>
+        </div>
+        <div class="goal-item">
+          <div class="goal-icon" style="color:var(--green)">✔</div>
+          <p><strong>実験の仕組み</strong>を理解した<br><span style="font-size:1.2vw;color:var(--gray)">¹⁵N→¹⁴N培地に移して分裂、バンドで観察</span></p>
+        </div>
+        <div class="goal-item">
+          <div class="goal-icon" style="color:var(--green)">✔</div>
+          <p><strong>分裂回数ごとのDNA本数</strong>を計算できる<br><span style="font-size:1.2vw;color:var(--gray)">軽い：2ⁿ－2　中間：2　重い：0</span></p>
+        </div>
+        <div class="goal-item">
+          <div class="goal-icon" style="color:var(--green)">✔</div>
+          <p><strong>本数の比</strong>を文字式で表せる<br><span style="font-size:1.2vw;color:var(--gray)">（2ⁿ⁻¹−1）：1：0</span></p>
+        </div>
+      </div>
+      <div class="col" style="flex:1">
+        <div class="card card-orange">
+          <div class="card-label">最重要ポイント</div>
+          <ul>
+            <li>¹⁵N鎖は<strong>最初の2本だけ</strong></li>
+            <li style="margin-top:.5vh">中間DNAは<strong>常に2本</strong>（n≧1）</li>
+            <li style="margin-top:.5vh">図を描いて確認する習慣をつけよう</li>
+          </ul>
+        </div>
+        <div class="highlight" style="margin-top:1vh">
+          <p>メセルソン・スタールの実験は<br>「半保存的複製」を証明した<br>生物学史上の名実験！</p>
+        </div>
+      </div>
+    </div>
+    <div class="card card-gray" style="margin-top:1vh">
+      <p style="font-size:1.2vw;color:var(--gray);text-align:center">次回：DNAの転写・翻訳（タンパク質合成）へ</p>
+    </div>
+  </div>
+</div>
+
+</div><!-- /slideContainer -->
+
+<div id="nav">
+  <button id="prevBtn" disabled>◀ 前へ</button>
+  <button id="nextBtn">次へ ▶</button>
+</div>
+<div id="slideInfo">1 / 14</div>
+
+<script>
+(function(){
+  var slides = document.querySelectorAll('.slide');
+  var total = slides.length;
+  var cur = 0;
+
+  // アニメーション管理
+  // data-anims属性: アニメーション要素の数（0=全て即表示）
+  var animState = {}; // slideIndex -> currentAnimIndex
+
+  function getAnimElems(slideIdx) {
+    var slide = slides[slideIdx];
+    var animCount = parseInt(slide.getAttribute('data-anims') || '0');
+    if (animCount === 0) return [];
+    var elems = [];
+    for (var i = 0; i < animCount; i++) {
+      // id パターン: s{slideNum}-a{i}  slideNum = slideIdx+1
+      var id = 's' + (slideIdx+1) + '-a' + i;
+      var el = document.getElementById(id);
+      if (el) elems.push(el);
+    }
+    return elems;
+  }
+
+  function showSlide(idx, direction) {
+    slides[cur].classList.remove('active');
+    cur = idx;
+    slides[cur].classList.add('active');
+
+    // アニメーションリセット
+    var animElems = getAnimElems(cur);
+    animElems.forEach(function(el){ el.classList.remove('show'); });
+    animState[cur] = 0;
+
+    // data-anims=0 なら即表示
+    if (parseInt(slides[cur].getAttribute('data-anims') || '0') === 0) {
+      // 全anim要素を即表示
+      slides[cur].querySelectorAll('.anim').forEach(function(el){ el.classList.add('show'); });
+    }
+
+    updateNav();
+  }
+
+  function showNextAnim() {
+    var animElems = getAnimElems(cur);
+    var idx = animState[cur] || 0;
+    if (idx < animElems.length) {
+      animElems[idx].classList.add('show');
+      animState[cur] = idx + 1;
+      return true;
+    }
+    return false;
+  }
+
+  function changeSlide(dir) {
+    if (dir === 1) {
+      // まずアニメーション表示を試みる
+      if (showNextAnim()) return;
+      // 次スライドへ
+      if (cur < total - 1) showSlide(cur + 1, 1);
+    } else {
+      if (cur > 0) showSlide(cur - 1, -1);
+    }
+  }
+
+  function updateNav() {
+    document.getElementById('prevBtn').disabled = (cur === 0);
+    document.getElementById('nextBtn').disabled = (cur === total - 1);
+    document.getElementById('slideInfo').textContent = (cur+1) + ' / ' + total;
+  }
+
+  document.getElementById('prevBtn').addEventListener('click', function(){ changeSlide(-1); });
+  document.getElementById('nextBtn').addEventListener('click', function(){ changeSlide(1); });
+
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+      e.preventDefault();
+      changeSlide(1);
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      changeSlide(-1);
+    }
+  });
+
+  // タッチスワイプ
+  var touchStartX = 0;
+  document.addEventListener('touchstart', function(e){ touchStartX = e.touches[0].clientX; });
+  document.addEventListener('touchend', function(e){
+    var dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 50) changeSlide(dx < 0 ? 1 : -1);
+  });
+
+  // 初期化
+  showSlide(0, 1);
+})();
+</script>
+</body>
+</html>
